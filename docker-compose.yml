@@ -1,6 +1,6 @@
 services:
   campusapp:
-    image: ghcr.io/your-org/campusapp:latest
+    image: ghcr.io/chendaile/csu-mcp:lates
     build:
       context: .
       dockerfile: Dockerfile

@@ -1,10 +1,8 @@
 ```
-  _________  _______  __   __  __  ____
- / ___/ __ \/ ___/ / / /  / / / / / __ \
-/ /__/ /_/ / /__/ /_/ /  / /_/ / / /_/ /
-\___/\____/\___/\__, /   \__,_/  \____/
-                /____/    CSU MCP
-      by oftheloneliness · github.com/chendaile
+┏━╸┏━┓╻ ╻   ┏┳┓┏━╸┏━┓
+┃  ┗━┓┃ ┃   ┃┃┃┃  ┣━┛
+┗━╸┗━┛┗━┛   ╹ ╹┗━╸╹                
+   by oftheloneliness · github.com/chendaile
 ```
 
 ## CSU MCP 本地服务
@@ -72,7 +70,6 @@ docker compose up -d         # 自动 build & run
 | `CSUGO_TOKEN` | `csugo-token` | API token |
 | `MCP_HTTP_ADDR` | `:13000` | 容器内 MCP 监听地址 |
 
-> 若需要校园网/代理，请在运行命令中加入 `-e http_proxy -e https_proxy`，确保容器能访问教务系统。
 
 ---
 
@@ -80,7 +77,7 @@ docker compose up -d         # 自动 build & run
 
 #### Claude Desktop
 ```bash
-claude mcp add csu-mcp http://localhost:13000
+claude mcp add --transport http csu-mcp http://localhost:13000
 ```
 重启 Claude，工具栏会出现 `csu.*` 系列按钮。让 Claude 执行“查询本学期课表”即可自动调用 MCP 工具。
 

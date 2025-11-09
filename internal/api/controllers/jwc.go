@@ -1,0 +1,89 @@
+package controllers
+
+import (
+	"campusapp/internal/api/models"
+	"github.com/astaxie/beego"
+)
+
+type JwcController struct {
+	beego.Controller
+}
+
+// @router /jwc/:id/:pwd/grade [get]
+func (this *JwcController) Grade() {
+	user := &models.JwcUser{
+		Id:  this.Ctx.Input.Param(":id"),
+		Pwd: this.Ctx.Input.Param(":pwd")}
+	jwc := &models.Jwc{}
+	grade, err := jwc.Grade(user)
+	stateCode := 1
+	errorstr := ""
+	if err != nil {
+		stateCode = -1
+		errorstr = err.Error()
+	}
+	this.Data["json"] = struct {
+		StateCode int
+		Error     string
+		Grades    []models.JwcGrade
+	}{
+		StateCode: stateCode,
+		Error:     errorstr,
+		Grades:    grade,
+	}
+	this.ServeJSON()
+}
+
+// @router /jwc/:id/:pwd/rank [get]
+func (this *JwcController) Rank() {
+	user := &models.JwcUser{
+		Id:  this.Ctx.Input.Param(":id"),
+		Pwd: this.Ctx.Input.Param(":pwd")}
+	jwc := &models.Jwc{}
+	rank, err := jwc.Rank(user)
+	stateCode := 1
+	errorstr := ""
+	if err != nil {
+		stateCode = -1
+		errorstr = err.Error()
+	}
+	this.Data["json"] = struct {
+		StateCode int
+		Error     string
+		Rank      []models.Rank
+	}{
+		StateCode: stateCode,
+		Error:     errorstr,
+		Rank:      rank,
+	}
+	this.ServeJSON()
+}
+
+// @router /jwc/:id/:pwd/class/:term/:week [get]
+func (this *JwcController) Class() {
+	user := &models.JwcUser{
+		Id:  this.Ctx.Input.Param(":id"),
+		Pwd: this.Ctx.Input.Param(":pwd")}
+	week := this.Ctx.Input.Param(":week")
+	term := this.Ctx.Input.Param(":term")
+	jwc := &models.Jwc{}
+	class, startWeekDay, err := jwc.Class(user, week, term)
+	stateCode := 1
+	errorstr := ""
+	if err != nil {
+		stateCode = -1
+		errorstr = err.Error()
+	}
+	this.Data["json"] = struct {
+		StateCode    int
+		Error        string
+		Class        [][]models.Class
+		StartWeekDay string
+	}{
+		StateCode:    stateCode,
+		Error:        errorstr,
+		Class:        class,
+		StartWeekDay: startWeekDay,
+	}
+	this.ServeJSON()
+}

@@ -1,0 +1,5 @@
+bin/
+var/logs/*
+!var/logs/.gitkeep
+*.log
+*.out

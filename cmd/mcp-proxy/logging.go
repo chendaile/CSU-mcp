@@ -1,10 +1,11 @@
 package main
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/astaxie/beego/logs"
 )
 
 // loggingResponseWriter captures status and byte count for logging.
@@ -40,6 +41,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 			host = parsedHost
 		}
 
-		log.Printf("| %15s | %3d | %12s | %s %s", host, lrw.status, duration, r.Method, r.URL.Path)
+		logs.Info("| %15s | %3d | %12s | %s %s", host, lrw.status, duration, r.Method, r.URL.Path)
 	})
 }

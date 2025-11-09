@@ -1,9 +1,10 @@
 package main
 
 import (
-	"log"
 	"net/http"
+	"os"
 
+	"github.com/astaxie/beego/logs"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"campusapp/internal/mcp/campus"
@@ -12,14 +13,17 @@ import (
 )
 
 func main() {
+	initLogger()
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal(err)
+		logs.Critical("load config: %v", err)
+		os.Exit(1)
 	}
 
 	client, err := campus.NewClient(cfg.BaseURL, cfg.Token, cfg.Timeout)
 	if err != nil {
-		log.Fatal(err)
+		logs.Critical("init campus client: %v", err)
+		os.Exit(1)
 	}
 
 	toolset := &tools.Toolset{Client: client}
@@ -33,11 +37,19 @@ func main() {
 		return server
 	}, nil)
 
-	log.Printf("csu MCP server listening on %s (csugo base %s)", cfg.HTTPAddr, cfg.BaseURL)
+	logs.Info("csu MCP server listening on %s (csugo base %s)", cfg.HTTPAddr, cfg.BaseURL)
 
-	appHandler := landingMiddleware(handler, cfg.ImplementationName, cfg.BaseURL)
+	appHandler := landingMiddleware(handler, cfg.ImplementationName, cfg.BaseURL, cfg.HTTPAddr)
 
 	if err := http.ListenAndServe(cfg.HTTPAddr, loggingMiddleware(appHandler)); err != nil {
-		log.Fatal(err)
+		logs.Critical("http server stopped: %v", err)
+		os.Exit(1)
 	}
+}
+
+func initLogger() {
+	logs.SetLogger(logs.AdapterConsole)
+	logs.EnableFuncCallDepth(true)
+	logs.SetLogFuncCallDepth(2)
+	logs.SetLevel(logs.LevelDebug)
 }

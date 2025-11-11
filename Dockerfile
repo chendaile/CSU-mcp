@@ -35,9 +35,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-ENV CSUGO_BASE_URL=http://127.0.0.1:12000 \
-    CSUGO_HTTP_PORT=12000 \
-    MCP_HTTP_ADDR=0.0.0.0:13000
 
 RUN mkdir -p /app/bin /app/var/logs/api
 

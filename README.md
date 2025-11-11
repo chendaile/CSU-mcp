@@ -40,36 +40,24 @@ docker run -d \
   curl "http://localhost:12000/api/v1/jwc/学号/密码/grade?token=csugo-token"
   ```
 
-**自定义端口或 token(一般默认即可)**
-```bash
-docker run -d --name csu-mcp \
-  -e CSUGO_HTTP_PORT=8080 \
-  -e CSUGO_BASE_URL=http://127.0.0.1:8080 \
-  -e CSUGO_TOKEN=my-token \
-  -e MCP_HTTP_ADDR=:18080 \
-  -p 8080:8080 \
-  -p 18080:18080 \
-  ghcr.io/chendaile/csu-mcp:latest
-```
-
-#### 2.2 使用 `docker compose`
-项目已经自带 `docker-compose.yml`，在仓库根目录执行：
+**自定义端口 / token / MCP 监听**  
+项目现在统一通过 `configs/api/conf/app.conf` 管理配置。要在 Docker 中覆盖，先在宿主机复制并修改该文件：
 ```bash
 git clone https://github.com/chendaile/CSU-mcp.git
 cd CSU-mcp
-docker compose up -d         # 自动 build & run
+cp configs/api/conf/app.conf my-app.conf
+# 按需编辑 httpport、token、[MCP] 块等参数
 ```
-可通过 `.env` 文件覆盖以下变量：
-
-| 变量 | 默认值 | 说明 |
-| ---- | ------ | ---- |
-| `CSU_API_PORT` | 12000 | 映射到宿主机的 API 端口 |
-| `CSU_MCP_PORT` | 13000 | 映射到宿主机的 MCP 端口 |
-| `CSUGO_HTTP_PORT` | 12000 | 容器内 API 监听端口 |
-| `CSUGO_BASE_URL` | `http://127.0.0.1:12000` | MCP 访问 API 的地址 |
-| `CSUGO_TOKEN` | `csugo-token` | API token |
-| `MCP_HTTP_ADDR` | `:13000` | 容器内 MCP 监听地址 |
-
+然后把修改后的文件挂载进容器：
+```bash
+docker run -d \
+  --name csu-mcp \
+  -p 18000:18000 \
+  -p 14000:14000 \
+  -v $(pwd)/my-app.conf:/app/configs/api/conf/app.conf:ro \
+  ghcr.io/chendaile/csu-mcp:latest
+```
+此时只需在 `my-app.conf` 里把 `httpport` 改成 `18000`、`[MCP]` 块里的 `HTTPAddr` 改成 `:14000`、`Token` 改为自定义值即可。
 
 ---
 

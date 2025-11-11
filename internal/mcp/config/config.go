@@ -3,8 +3,11 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/astaxie/beego/config"
 )
 
 type Server struct {
@@ -17,40 +20,65 @@ type Server struct {
 }
 
 func Load() (Server, error) {
+	cfgPath, err := resolveConfigPath()
+	if err != nil {
+		return Server{}, err
+	}
+
+	rawCfg, err := config.NewConfig("ini", cfgPath)
+	if err != nil {
+		return Server{}, fmt.Errorf("load mcp config %s: %w", cfgPath, err)
+	}
+
+	timeoutStr := rawCfg.DefaultString("MCP::Timeout", "15s")
+	timeout, err := time.ParseDuration(timeoutStr)
+	if err != nil {
+		return Server{}, fmt.Errorf("invalid MCP::Timeout %q: %w", timeoutStr, err)
+	}
+	if timeout <= 0 {
+		return Server{}, fmt.Errorf("MCP::Timeout must be > 0")
+	}
+
 	cfg := Server{
-		BaseURL:               getEnv("CSUGO_BASE_URL", "http://localhost:12000"),
-		Token:                 getEnv("CSUGO_TOKEN", "csugo-token"),
-		Timeout:               15 * time.Second,
-		ImplementationName:    getEnv("MCP_IMPLEMENTATION_NAME", "csu-mcp-proxy"),
-		ImplementationVersion: getEnv("MCP_IMPLEMENTATION_VERSION", "0.1.0"),
-		HTTPAddr:              getEnv("MCP_HTTP_ADDR", ""),
+		BaseURL:               strings.TrimSpace(rawCfg.DefaultString("MCP::BaseURL", "")),
+		Token:                 rawCfg.DefaultString("MCP::Token", ""),
+		Timeout:               timeout,
+		ImplementationName:    rawCfg.DefaultString("MCP::ImplementationName", "csu-mcp-proxy"),
+		ImplementationVersion: rawCfg.DefaultString("MCP::ImplementationVersion", "0.1.0"),
+		HTTPAddr:              strings.TrimSpace(rawCfg.DefaultString("MCP::HTTPAddr", ":13000")),
 	}
 
 	if cfg.BaseURL == "" {
-		return cfg, fmt.Errorf("CSUGO_BASE_URL must be set")
+		return cfg, fmt.Errorf("MCP::BaseURL must be set in %s", cfgPath)
 	}
-
-	if strings.TrimSpace(cfg.HTTPAddr) == "" {
+	if cfg.HTTPAddr == "" {
 		cfg.HTTPAddr = ":13000"
-	}
-
-	if raw := os.Getenv("CSUGO_TIMEOUT"); raw != "" {
-		timeout, err := time.ParseDuration(raw)
-		if err != nil {
-			return cfg, fmt.Errorf("invalid CSUGO_TIMEOUT: %w", err)
-		}
-		if timeout <= 0 {
-			return cfg, fmt.Errorf("CSUGO_TIMEOUT must be > 0")
-		}
-		cfg.Timeout = timeout
 	}
 
 	return cfg, nil
 }
 
-func getEnv(key, fallback string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+func resolveConfigPath() (string, error) {
+	start, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("determine working directory: %w", err)
 	}
-	return fallback
+	target := filepath.Join("configs", "api", "conf", "app.conf")
+	dir := start
+	for {
+		candidate := filepath.Join(dir, target)
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+	alt := filepath.Join("/app", target)
+	if _, err := os.Stat(alt); err == nil {
+		return alt, nil
+	}
+	return "", fmt.Errorf("unable to locate %s from %s", target, start)
 }

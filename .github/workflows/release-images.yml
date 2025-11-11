@@ -1,0 +1,54 @@
+name: Release Docker Images
+
+on:
+  push:
+    tags:
+      - release-v*
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: csu-mcp
+  GHCR_REGISTRY: ghcr.io/chendaile
+  ALIYUN_REGISTRY: crpi-qpej8ufiacto12s1.cn-hangzhou.personal.cr.aliyuncs.com/csu-mcp
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: vars
+        run: |
+          VERSION="${GITHUB_REF_NAME#release-}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Aliyun CR
+        uses: docker/login-action@v3
+        with:
+          registry: crpi-qpej8ufiacto12s1.cn-hangzhou.personal.cr.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Build and push images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.version }}
+            ${{ env.ALIYUN_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.version }}

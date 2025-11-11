@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -33,7 +32,8 @@ func (c *MainController) Get() {
 	displayHost := branding.JoinHostPort(hostName, hostPort)
 	metaAddr := fmt.Sprintf("%s://%s", scheme, displayHost)
 
-	mcpPort := branding.PortFromAddress(os.Getenv("MCP_HTTP_ADDR"), "13000")
+	mcpAddr := beego.AppConfig.DefaultString("MCP::HTTPAddr", ":13000")
+	mcpPort := branding.PortFromAddress(mcpAddr, "13000")
 	mcpURL := fmt.Sprintf("%s://%s", scheme, branding.JoinHostPort(hostName, mcpPort))
 
 	c.Data["Title"] = appName

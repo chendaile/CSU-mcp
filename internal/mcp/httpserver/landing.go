@@ -1,4 +1,4 @@
-package main
+package httpserver
 
 import (
 	"fmt"
@@ -34,7 +34,10 @@ var (
 	landingTemplateErr  error
 )
 
-func landingMiddleware(next http.Handler, implName, baseURL, listenAddr string) http.Handler {
+// LandingMiddleware serves a lightweight MCP landing page before delegating to
+// the MCP handler. Reuses the branding template to keep copy consistent with
+// the main API server.
+func LandingMiddleware(next http.Handler, implName, baseURL, listenAddr string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet && r.URL.Path == "/" {
 			scheme := resolveScheme(r)

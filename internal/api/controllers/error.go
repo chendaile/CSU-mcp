@@ -1,6 +1,11 @@
 package controllers
 
-import "github.com/astaxie/beego"
+import (
+	"net/http"
+	"strings"
+
+	"github.com/astaxie/beego"
+)
 
 type ErrorController struct {
 	beego.Controller
@@ -11,11 +16,25 @@ type Error struct {
 	Error     string
 }
 
-func (this *ErrorController) Error404() {
-	this.Data["json"] = Error{
+func (c *ErrorController) Error404() {
+	payload := Error{
 		StateCode: 404,
 		Error:     "api not found",
 	}
-	this.TplName = "errors/404.html"
-	this.ServeJSON()
+	c.Data["json"] = payload
+
+	path := c.Ctx.Input.URL()
+	accept := c.Ctx.Request.Header.Get("Accept")
+	wantsJSON := strings.HasPrefix(path, "/api/") ||
+		strings.HasPrefix(path, "/wxapp") ||
+		strings.Contains(accept, "application/json")
+
+	if wantsJSON {
+		c.Ctx.Output.SetStatus(http.StatusNotFound)
+		c.ServeJSON()
+		c.StopRun()
+		return
+	}
+
+	c.TplName = "errors/404.html"
 }

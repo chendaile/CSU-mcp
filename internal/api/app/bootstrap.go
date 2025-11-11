@@ -23,6 +23,9 @@ func Initialize() error {
 	}
 
 	beego.BConfig.WebConfig.ViewsPath = viewsPath
+	if err := beego.AddViewPath(viewsPath); err != nil {
+		return fmt.Errorf("register views: %w", err)
+	}
 	beego.SetStaticPath("/static", staticPath)
 
 	if err := beego.LoadAppConfig("ini", configPath); err != nil {

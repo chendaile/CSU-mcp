@@ -9,6 +9,7 @@ import (
 
 	"campusapp/internal/mcp/campus"
 	"campusapp/internal/mcp/config"
+	"campusapp/internal/mcp/httpserver"
 	"campusapp/internal/mcp/tools"
 )
 
@@ -39,9 +40,9 @@ func main() {
 
 	logs.Info("csu MCP server listening on %s (csugo base %s)", cfg.HTTPAddr, cfg.BaseURL)
 
-	appHandler := landingMiddleware(handler, cfg.ImplementationName, cfg.BaseURL, cfg.HTTPAddr)
+	appHandler := httpserver.LandingMiddleware(handler, cfg.ImplementationName, cfg.BaseURL, cfg.HTTPAddr)
 
-	if err := http.ListenAndServe(cfg.HTTPAddr, loggingMiddleware(appHandler)); err != nil {
+	if err := http.ListenAndServe(cfg.HTTPAddr, httpserver.LoggingMiddleware(appHandler)); err != nil {
 		logs.Critical("http server stopped: %v", err)
 		os.Exit(1)
 	}

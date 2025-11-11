@@ -37,13 +37,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to Aliyun CR
-        uses: docker/login-action@v3
-        with:
-          registry: crpi-qpej8ufiacto12s1.cn-hangzhou.personal.cr.aliyuncs.com
-          username: ${{ secrets.ALIYUN_USERNAME }}
-          password: ${{ secrets.ALIYUN_PASSWORD }}
-
       - name: Build and push images
         uses: docker/build-push-action@v5
         with:
@@ -51,4 +44,3 @@ jobs:
           push: true
           tags: |
             ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.version }}
-            ${{ env.ALIYUN_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.version }}

@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates tzdata bash && \
+    apt-get install -y --no-install-recommends ca-certificates tzdata bash nginx && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -44,6 +44,10 @@ COPY --from=builder /out/mcp-proxy /app/bin/mcp-proxy
 COPY configs/api/conf ./configs/api/conf
 COPY web/static ./web/static
 COPY web/views ./web/views
+
+COPY configs/nginx/csu-mcp.conf /etc/nginx/conf.d/csu-mcp.conf
+RUN rm -f /etc/nginx/sites-enabled/default && \
+    chmod 0644 /etc/nginx/conf.d/csu-mcp.conf
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \

@@ -47,7 +47,7 @@ COPY web/views ./web/views
 
 COPY configs/nginx/csu-mcp.conf /etc/nginx/conf.d/csu-mcp.conf
 RUN rm -f /etc/nginx/sites-enabled/default && \
-    chmod 0644 /etc/nginx/conf.d/csu-mcp.conf
+    chmod 0644 /etc/nginx/conf.d/csu-mcp.conf 
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
